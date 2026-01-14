@@ -1,13 +1,17 @@
-import express from 'express';
-import db from'./db/db'
+const express=require("express")
+const db = require('./db/db');
+const Routes = require('./routes/routes');
 const app = express()
 const PORT = 3000
+const bodyparser = require('body-parser');
 
 
-db()
-app.get('/', (req, res) => {
-    res.send('Hello World!')
-})
+
+db();
+app.use(bodyparser.json());
+app.use('/api' ,Routes)
+
+
 
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
