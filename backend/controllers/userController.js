@@ -1,4 +1,6 @@
 const User = require('../models/user');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 
 
 const getUser =  (req,res)=>{
@@ -28,5 +30,54 @@ const registerUser =(req,res)=>{
 
 
 }
+const getUserById =(req,res)=>{
+    const{id}=req.params
+    User.seletUserById(id,(err,results)=>{
+        if(err){
+            return res.status(500).json({error:err.message})
+        }else{
+            return res.status(200).json(results)
+        }
 
-module.exports={registerUser,getUser}
+    })
+   
+
+}
+const deleteUser =(req,res)=>{
+    const {id}=req.params
+    User.deleteUser(id,(err,results)=>{
+        if(err){
+            return res.status(500).json({error:err.message})
+        }
+
+    })
+}
+const login =(req,res)=>{
+    const {email,password}= req.body  
+    User.selectUserByEmail(email,(err,results)=>{
+        if(err){
+            return res.status(500).json({error:err.message})
+        }if(results.length===0){
+            return res.status(404).json({message:"user not found"})
+        }
+        const user= results[0]
+        const passwordMatch = bcrypt.compareSync(password,user.password)
+        if(!passwordMatch){
+            return res.status(401).json({message:"invalid password"})
+        }
+
+        const token = jwt.sign({ id: user.id},"ayoosekolah",{
+            expiresIn: 86400,
+
+        });
+        const dataUser={
+            username: user.username,
+            email: user.email,
+            role_id: user.role_id
+        }
+
+        res.status(200).json({auth: true,dataUser,token});
+    })  
+}
+
+module.exports={registerUser,getUser,getUserById,login}

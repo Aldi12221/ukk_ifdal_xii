@@ -19,5 +19,17 @@ const registerUser =(username,email,password,nama_lengkap,alamat,role_id,callbac
 
 
 }
+const seletUserById =(id,callback)=>{
+    const q = "SELECT * FROM users WHERE id = ?"
+    db.query (q,[id],callback)
+}
+const selectUserByEmail = (email,callback)=>{
+    const q =" SELECT * FROM users WHERE email=?";
+    db.query(q,[email],callback)
+};
+const deleteUser =(id,callback)=>{
+    const q = "DELETE FROM users WHERE id = ?"
+    db.query(q,[id],callback)
+}
 
-module.exports={registerUser,getUser}
+module.exports={registerUser,getUser,seletUserById,selectUserByEmail,deleteUser}

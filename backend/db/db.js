@@ -64,7 +64,7 @@ const createPeminjamanTable = (koneksi) => {
         id_petugas INT,
         id_alat INT,
         tanggal_pinjam DATETIME DEFAULT CURRENT_TIMESTAMP,
-        tanggal_kembali_seharusnya DATETIME NOT NULL, -- Input user/sistem
+        tanggal_kembali_seharusnya DATETIME NOT NULL,
         status_approval ENUM('pending', 'approved', 'rejected') DEFAULT 'pending',
         FOREIGN KEY (id_peminjam) REFERENCES users(id),
         FOREIGN KEY (id_petugas) REFERENCES users(id),
