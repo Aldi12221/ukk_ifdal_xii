@@ -48,6 +48,8 @@ const deleteUser =(req,res)=>{
     User.deleteUser(id,(err,results)=>{
         if(err){
             return res.status(500).json({error:err.message})
+        }else{
+            return res.status(200).json({message:"user deleted successfully",results})
         }
 
     })
@@ -79,5 +81,20 @@ const login =(req,res)=>{
         res.status(200).json({auth: true,dataUser,token});
     })  
 }
+const updateUser =(req,res)=>{
+    const {id}= req.params
+   
+    const {username,email,password,nama_lengkap,alamat,role_id}= req.body
+    User.updateUser(id,username,email,password,nama_lengkap,alamat,role_id,(err,results)=>{
+        if(err){
+            return res.status(500).json({error:err.message})
+        }
+        if(results.affectedRows===0){
+            return res.status(404).json({message:"user not found"})
+        }
+        else{
+            return res.status(200).json({message:"user updated successfully",results})
+        }})
 
-module.exports={registerUser,getUser,getUserById,login}
+}
+module.exports={registerUser,getUser,getUserById,login,deleteUser,updateUser}

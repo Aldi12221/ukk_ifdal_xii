@@ -31,5 +31,11 @@ const deleteUser =(id,callback)=>{
     const q = "DELETE FROM users WHERE id = ?"
     db.query(q,[id],callback)
 }
+const updateUser=(id,username,email,password,nama_lengkap,alamat,role_id,callback)=>{
+    const passwordHash = bcrypt.hashSync(password,10)
+    const q = "UPDATE users SET username=?, email=?, password=?, nama_lengkap=?, alamat=?, role_id=? WHERE id=?"
+    db.query(q,[username,email,passwordHash,nama_lengkap,alamat,role_id,id],callback)
 
-module.exports={registerUser,getUser,seletUserById,selectUserByEmail,deleteUser}
+}
+
+module.exports={registerUser,getUser,seletUserById,selectUserByEmail,deleteUser,updateUser}
