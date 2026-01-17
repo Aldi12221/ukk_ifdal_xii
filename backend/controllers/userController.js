@@ -1,6 +1,7 @@
 const User = require('../models/user');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+require('dotenv').config();
 
 
 const getUser =  (req,res)=>{
@@ -68,7 +69,7 @@ const login =(req,res)=>{
             return res.status(401).json({message:"invalid password"})
         }
 
-        const token = jwt.sign({ id: user.id},"ayoosekolah",{
+        const token = jwt.sign({ id: user.id},process.env.JWT_SECRET,{
             expiresIn: 86400,
 
         });

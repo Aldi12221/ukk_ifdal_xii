@@ -1,4 +1,4 @@
-const db= require('../db/sqlKonek')
+const db= require('../db/db')
 const bcrypt = require('bcryptjs')
 
 const getUser=(callback)=>{

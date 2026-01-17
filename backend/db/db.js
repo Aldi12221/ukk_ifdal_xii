@@ -5,6 +5,42 @@ const koneksi = mysql.createConnection({
     password:'',
     
 })
+
+const db = () => {
+    koneksi.connect((err) => {
+        if (err) {
+            console.error("Gagal konek ke MySQL:", err.stack);
+            return;
+        }
+        console.log("1. Berhasil konek ke MySQL");
+
+      
+        koneksi.query("CREATE DATABASE IF NOT EXISTS ukk_ifdal", (err) => {
+            if (err) {
+                console.error("Gagal membuat database:", err.message);
+                return;
+            }
+            
+            
+
+           
+            koneksi.query("USE ukk_ifdal", (err) => {
+                if (err) throw err;
+                
+                createRolesTable(koneksi);
+                createUserTable(koneksi);
+                createKategoriTable(koneksi);
+                createAlatTable(koneksi);
+                createPeminjamanTable(koneksi);
+                createPengembalianTable(koneksi);
+            });
+        });
+    });
+};
+
+
+
+
 const createRolesTable = (koneksi) => {
     const q = `CREATE TABLE IF NOT EXISTS roles (
         id INT AUTO_INCREMENT PRIMARY KEY,
@@ -71,7 +107,7 @@ const createPeminjamanTable = (koneksi) => {
         FOREIGN KEY (id_alat) REFERENCES alat(id))`;
     koneksi.query(q, (err) => {
         if (err) throw err;
-        console.log('Tabel peminjaman diperbarui (dengan tenggat waktu)');
+        console.log('Tabel peminjaman berhasil dibuat');
     });
 };
 
@@ -86,40 +122,9 @@ const createPengembalianTable = (koneksi) => {
         FOREIGN KEY (id_petugas) REFERENCES users(id))`;
     koneksi.query(q, (err) => {
         if (err) throw err;
-        console.log('Tabel pengembalian diperbarui (dengan kolom denda)');
+        console.log('Tabel pengembalian berhasil dibuat');
     });
 };
-const db =()=>{
-    koneksi.connect((err)=>{
-        if(err){
-            console.error(" error ketika konek ke database",err.stack);
-            return;
-        }
-        console.log("berhasil konek mysql");
-        koneksi.query(
-            "CREATE DATABASE IF NOT EXISTS ukk_ifdal",
-            (err)=>{
-                if(err){
-                    console.error(" error membuat database",err.stack);
-            return;
-                }
-                console.log("database berhasil di buat atau sudah ada");
 
-                const konekMysql = require('./sqlKonek')
-               
-
-
-                createRolesTable(konekMysql);
-                createUserTable(konekMysql);
-                createKategoriTable(konekMysql);
-                createAlatTable(konekMysql);
-                createPeminjamanTable(konekMysql);
-                createPengembalianTable(konekMysql);
-
-               
-            }
-        );
-    });
-};
 
 module.exports = db

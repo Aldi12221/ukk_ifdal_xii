@@ -1,5 +1,6 @@
 const jwt = require("jsonwebtoken");
-const secretKey = "ayoosekolah"
+require('dotenv').config();
+const secretKey = process.env.JWT_SECRET;
 
 const isAdmin =(req,res,next)=>{
     if(req.user && req.user.role_id === 1){
