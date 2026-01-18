@@ -1,101 +1,293 @@
+// ===========================================
+// FILE: userController.js
+// DESKRIPSI: Controller untuk mengelola user
+// ===========================================
 const User = require('../models/user');
-const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const LogAktivitas = require('../models/logAktivitas');
 require('dotenv').config();
 
-
-const getUser =  (req,res)=>{
-    User.getUser((err,results)=>{
-        if(err)
-        {
-            return res.status(500).json({error:err.message})
+// ===== GET ALL USERS =====
+// Endpoint: GET /api/users
+const getAll = (req, res) => {
+    User.getAll((err, results) => {
+        if (err) {
+            return res.status(500).json({
+                success: false,
+                message: "Gagal mengambil data user",
+                error: err.message
+            });
         }
-        if (results.length===0){
-            return res.status(404).json({message:"user kosong"})
-        }
-        res.status(200).json(results)
-    })
-}
-const registerUser =(req,res)=>{
-    const {username,email, password,nama_lengkap,alamat, role_id} = req.body;
-    User.registerUser(username,email,password,nama_lengkap,alamat,role_id,(err,results)=>{
-        if(err)
-        {
-            return res.status(500).json({error:err.message})
-        }
-        if (results.length===0){
-            return res.status(404).json({message:"user kosong"})
-        }
-        res.status(200).json(results)
-    })
-
-
-}
-const getUserById =(req,res)=>{
-    const{id}=req.params
-    User.seletUserById(id,(err,results)=>{
-        if(err){
-            return res.status(500).json({error:err.message})
-        }else{
-            return res.status(200).json(results)
-        }
-
-    })
-   
-
-}
-const deleteUser =(req,res)=>{
-    const {id}=req.params
-    User.deleteUser(id,(err,results)=>{
-        if(err){
-            return res.status(500).json({error:err.message})
-        }else{
-            return res.status(200).json({message:"user deleted successfully",results})
-        }
-
-    })
-}
-const login =(req,res)=>{
-    const {email,password}= req.body  
-    User.selectUserByEmail(email,(err,results)=>{
-        if(err){
-            return res.status(500).json({error:err.message})
-        }if(results.length===0){
-            return res.status(404).json({message:"user not found"})
-        }
-        const user= results[0]
-        const passwordMatch = bcrypt.compareSync(password,user.password)
-        if(!passwordMatch){
-            return res.status(401).json({message:"invalid password"})
-        }
-
-        const token = jwt.sign({ id: user.id},process.env.JWT_SECRET,{
-            expiresIn: 86400,
-
+        res.status(200).json({
+            success: true,
+            message: "Berhasil mengambil data user",
+            data: results
         });
-        const dataUser={
+    });
+};
+
+// ===== GET USER BY ID =====
+// Endpoint: GET /api/users/:id
+const getById = (req, res) => {
+    const { id } = req.params;
+
+    User.getById(id, (err, results) => {
+        if (err) {
+            return res.status(500).json({
+                success: false,
+                message: "Gagal mengambil data user",
+                error: err.message
+            });
+        }
+        if (results.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "User tidak ditemukan"
+            });
+        }
+        res.status(200).json({
+            success: true,
+            data: results[0]
+        });
+    });
+};
+
+// ===== REGISTER USER =====
+// Endpoint: POST /api/register
+const register = (req, res) => {
+    const data = req.body;
+
+    // Validasi input
+    if (!data.username || !data.email || !data.password) {
+        return res.status(400).json({
+            success: false,
+            message: "Username, email, dan password wajib diisi"
+        });
+    }
+
+    User.create(data, (err, results) => {
+        if (err) {
+            // Cek jika email sudah ada
+            if (err.code === 'ER_DUP_ENTRY') {
+                return res.status(400).json({
+                    success: false,
+                    message: "Email sudah terdaftar"
+                });
+            }
+            return res.status(500).json({
+                success: false,
+                message: "Gagal mendaftarkan user",
+                error: err.message
+            });
+        }
+
+        // Catat log aktivitas
+        LogAktivitas.create({
+            id_user: results.insertId,
+            aksi: 'REGISTER',
+            tabel_terkait: 'users',
+            id_data: results.insertId,
+            keterangan: `User baru mendaftar: ${data.email}`
+        }, () => { });
+
+        res.status(201).json({
+            success: true,
+            message: "Berhasil mendaftarkan user",
+            data: { id: results.insertId }
+        });
+    });
+};
+
+// ===== LOGIN =====
+// Endpoint: POST /api/login
+const login = (req, res) => {
+    const { email, password } = req.body;
+
+    // Validasi input
+    if (!email || !password) {
+        return res.status(400).json({
+            success: false,
+            message: "Email dan password wajib diisi"
+        });
+    }
+
+    // Cari user berdasarkan email
+    User.getByEmail(email, (err, results) => {
+        if (err) {
+            return res.status(500).json({
+                success: false,
+                message: "Terjadi kesalahan",
+                error: err.message
+            });
+        }
+
+        // User tidak ditemukan
+        if (results.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "Email tidak terdaftar"
+            });
+        }
+
+        const user = results[0];
+
+        // Cek password
+        const isPasswordValid = User.verifyPassword(password, user.password);
+
+        if (!isPasswordValid) {
+            return res.status(401).json({
+                success: false,
+                message: "Password salah"
+            });
+        }
+
+        // Buat token JWT
+        // Token berisi id dan role_id user
+        const token = jwt.sign(
+            { id: user.id, role_id: user.role_id },
+            process.env.JWT_SECRET,
+            { expiresIn: '24h' } // Token berlaku 24 jam
+        );
+
+        // Data user yang dikirim ke frontend (tanpa password)
+        const userData = {
+            id: user.id,
             username: user.username,
             email: user.email,
+            nama_lengkap: user.nama_lengkap,
+            alamat: user.alamat,
             role_id: user.role_id
+        };
+
+        // Catat log aktivitas
+        LogAktivitas.create({
+            id_user: user.id,
+            aksi: 'LOGIN',
+            tabel_terkait: 'users',
+            id_data: user.id,
+            keterangan: `User login: ${email}`
+        }, () => { });
+
+        res.status(200).json({
+            success: true,
+            message: "Login berhasil",
+            data: userData,
+            token: token
+        });
+    });
+};
+
+// ===== UPDATE USER =====
+// Endpoint: PUT /api/users/:id
+const update = (req, res) => {
+    const { id } = req.params;
+    const data = req.body;
+
+    User.update(id, data, (err, results) => {
+        if (err) {
+            return res.status(500).json({
+                success: false,
+                message: "Gagal mengupdate user",
+                error: err.message
+            });
+        }
+        if (results.affectedRows === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "User tidak ditemukan"
+            });
         }
 
-        res.status(200).json({auth: true,dataUser,token});
-    })  
-}
-const updateUser =(req,res)=>{
-    const {id}= req.params
-   
-    const {username,email,password,nama_lengkap,alamat,role_id}= req.body
-    User.updateUser(id,username,email,password,nama_lengkap,alamat,role_id,(err,results)=>{
-        if(err){
-            return res.status(500).json({error:err.message})
-        }
-        if(results.affectedRows===0){
-            return res.status(404).json({message:"user not found"})
-        }
-        else{
-            return res.status(200).json({message:"user updated successfully",results})
-        }})
+        // Catat log aktivitas
+        LogAktivitas.create({
+            id_user: req.userId,
+            aksi: 'UPDATE',
+            tabel_terkait: 'users',
+            id_data: id,
+            keterangan: `User diupdate: ID ${id}`
+        }, () => { });
 
-}
-module.exports={registerUser,getUser,getUserById,login,deleteUser,updateUser}
+        res.status(200).json({
+            success: true,
+            message: "Berhasil mengupdate user"
+        });
+    });
+};
+
+// ===== DELETE USER =====
+// Endpoint: DELETE /api/users/:id
+const deleteUser = (req, res) => {
+    const { id } = req.params;
+
+    User.deleteById(id, (err, results) => {
+        if (err) {
+            return res.status(500).json({
+                success: false,
+                message: "Gagal menghapus user",
+                error: err.message
+            });
+        }
+        if (results.affectedRows === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "User tidak ditemukan"
+            });
+        }
+
+        // Catat log aktivitas
+        LogAktivitas.create({
+            id_user: req.userId,
+            aksi: 'DELETE',
+            tabel_terkait: 'users',
+            id_data: id,
+            keterangan: `User dihapus: ID ${id}`
+        }, () => { });
+
+        res.status(200).json({
+            success: true,
+            message: "Berhasil menghapus user"
+        });
+    });
+};
+
+// ===== GET PROFILE =====
+// Endpoint: GET /api/profile
+// Mengambil data user yang sedang login
+const getProfile = (req, res) => {
+    const userId = req.userId; // Dari middleware verifyToken
+
+    User.getById(userId, (err, results) => {
+        if (err) {
+            return res.status(500).json({
+                success: false,
+                message: "Gagal mengambil profil",
+                error: err.message
+            });
+        }
+        if (results.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "User tidak ditemukan"
+            });
+        }
+
+        // Hapus password dari response
+        const { password, ...userData } = results[0];
+
+        res.status(200).json({
+            success: true,
+            data: userData
+        });
+    });
+};
+
+// Export semua fungsi
+module.exports = {
+    getAll,
+    getById,
+    register,
+    login,
+    update,
+    deleteUser,
+    getProfile
+};
