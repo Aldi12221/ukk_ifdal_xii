@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
@@ -54,17 +54,16 @@ class UserController extends Controller
     
     public function register(Request $request)
     {
-        $request->validate([
+        $data = $request->validate([
             'username' => 'required',
             'email' => 'required|email|unique:users',
+            'nama_lengkap' => 'required',
+            'alamat' => 'required',
+            'role_id' => 'required',
             'password' => 'required|min:6'
         ]);
 
-        $user = User::create([
-            'username' => $request->username,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-        ]);
+        $user = User::create($data);
 
         LogAktivitas::create([
             'id_user' => $user->id,
@@ -123,9 +122,9 @@ class UserController extends Controller
     }
 
    
-    public function update(Request $request, $id)
+    public function update(Request $request,User $user)
     {
-        $user = User::find($id);
+        
 
         if (!$user) {
             return response()->json([
@@ -140,8 +139,8 @@ class UserController extends Controller
             'id_user' => auth()->id(),
             'aksi' => 'UPDATE',
             'tabel_terkait' => 'users',
-            'id_data' => $id,
-            'keterangan' => "User diupdate: ID {$id}"
+            'id_data' => $user->id,
+            'keterangan' => "User diupdate: ID {$user->id}"
         ]);
 
         return response()->json([
@@ -151,9 +150,9 @@ class UserController extends Controller
     }
 
    
-    public function destroy($id)
+    public function destroy(User $user)
     {
-        $user = User::find($id);
+       
 
         if (!$user) {
             return response()->json([

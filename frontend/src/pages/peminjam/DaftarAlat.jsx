@@ -75,7 +75,7 @@ function DaftarAlat() {
                                     <div className="flex items-start justify-between mb-4">
                                         {alat.gambar ? (
                                             <img
-                                                src={`http://localhost:3000/uploads/${alat.gambar}`}
+                                                src={`http://127.0.0.1:8000/storage${alat.gambar}`}
                                                 alt={alat.nama_alat}
                                                 className="w-16 h-16 object-cover rounded-lg"
                                             />

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\Peminjaman;
@@ -34,10 +34,10 @@ class PeminjamanController extends Controller
     }
 
     
-    public function show($id)
+    public function show(Peminjaman $peminjaman)
     {
         try {
-            $peminjaman = Peminjaman::find($id);
+           
 
             if (!$peminjaman) {
                 return response()->json([

@@ -6,9 +6,9 @@
 import axios from 'axios';
 
 // URL backend
-const API_URL = 'http://127.0.0.1:8000';
+const API_URL = 'http://127.0.0.1:8000/api';
 
-// Buat instance axios dengan konfigurasi default
+
 const api = axios.create({
     baseURL: API_URL,
     headers: {
@@ -16,8 +16,7 @@ const api = axios.create({
     }
 });
 
-// Interceptor untuk menambahkan token ke setiap request
-// Ini otomatis menambahkan Authorization header jika user sudah login
+
 api.interceptors.request.use(
     (config) => {
         const token = localStorage.getItem('token');

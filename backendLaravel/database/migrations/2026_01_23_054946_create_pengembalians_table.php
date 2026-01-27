@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('pengembalians', function (Blueprint $table) {
+        Schema::create('pengembalian', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('id_peminjaman');
             $table->unsignedBigInteger('id_petugas');
@@ -23,7 +23,7 @@ return new class extends Migration
             
             $table->timestamps();
 
-            $table->foreign('id_peminjaman')->references('id')->on('peminjaman');
+            $table->foreign('id_peminjaman')->references('id')->on('peminjamen');
             $table->foreign('id_petugas')->references('id')->on('users');
         });
     }

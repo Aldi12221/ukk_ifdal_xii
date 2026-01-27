@@ -13,7 +13,7 @@ class LogAktivitasController extends Controller
      public function index()
     {
         try {
-            $users = log_aktifitas::get();
+            $users = log_aktivitas::get();
 
             return response()->json([
                 'success' => true,

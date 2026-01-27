@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('aksi');
             $table->string('tabel_terkait');
             $table->text('keterangan');
+            $table->unsignedBigInteger('id_data');
             $table->timestamps();
 
             $table->foreign('id_user')->references('id')->on('users');

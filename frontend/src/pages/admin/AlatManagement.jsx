@@ -9,7 +9,7 @@ import { getAlat, getKategori, deleteAlat } from '../../services/api';
 import axios from 'axios';
 
 // URL untuk gambar
-const IMAGE_URL = 'http://localhost:3000/uploads';
+const IMAGE_URL = 'http://127.0.0.1:8000/storage';
 
 function AlatManagement() {
     const [alatList, setAlatList] = useState([]);

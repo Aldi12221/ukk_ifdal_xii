@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
@@ -55,7 +55,7 @@ class PengembalianController extends Controller
     
     public function store(Request $request)
     {
-        $request->validate([
+       $data = $request->validate([
             'id_peminjaman' => 'required|exists:peminjaman,id',
             'kondisi_alat' => 'nullable|string',
             'catatan' => 'nullable|string'

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\Alat;
@@ -14,12 +14,12 @@ class AlatController extends Controller
     public function index()
     {
         try {
-            $alat = Alat::all();
+           
 
             return response()->json([
                 'success' => true,
                 'message' => 'Berhasil mengambil data alat',
-                'data'    => $alat
+                'data'=> Alat::latest()->with('kategori')->get()
             ], 200);
 
         } catch (\Exception $e) {
@@ -53,10 +53,10 @@ class AlatController extends Controller
     }
 
     
-    public function show($id)
+    public function show(Alat $alat)
     {
         try {
-            $alat = Alat::find($id);
+            
 
             if (!$alat) {
                 return response()->json([
@@ -84,18 +84,22 @@ class AlatController extends Controller
     {
         try {
             
-            $request->validate([
+            $data=$request->validate([
                 'nama_alat' => 'required|string',
+                'deskripsi' => 'required|string',
                 'jumlah'    => 'required|integer',
+                'jumlah_tersedia'    => 'required|integer',
+                'kategori_id'    => 'required|integer',
+                'kondisi'    => 'required',
                 'gambar'    => 'nullable|image'
             ]);
 
-            $data = $request->all();
-
-           
+            
+            
             if ($request->hasFile('gambar')) {
                 $data['gambar'] = $request->file('gambar')->store('alat', 'public');
             }
+          
 
             $alat = Alat::create($data);
 
